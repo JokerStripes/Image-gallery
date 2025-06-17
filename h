@@ -1,62 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Text→Image Demo</title>
-  <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
-    input, button { font-size: 1rem; padding: 0.5rem; }
-    #preview img { max-width: 100%; margin-top: 1rem; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Gallery</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 20px; }
+        .gallery img { width: 100%; height: auto; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); justify-content: center; align-items: center; }
+        .modal img { max-width: 90%; max-height: 90%; }
+        .modal.active { display: flex; }
+    </style>
 </head>
 <body>
-  <h1>🖼️ AI Text → Image</h1>
-  <p>Enter any text prompt and hit “Generate” to see a Stable Diffusion image.</p>
-  <input type="text" id="prompt" placeholder="e.g. a sunset over alien mountains" size="40">
-  <button id="go">Generate</button>
-  <div id="status"></div>
-  <div id="preview"></div>
+    <h1>Image Gallery</h1>
+    <div class="gallery" id="gallery"></div>
+    <div class="modal" id="modal">
+        <img src="" alt="Full view" id="modalImg">
+    </div>
+    <script>
+        const gallery = document.getElementById('gallery');
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modalImg');
 
-  <script>
-    document.getElementById('go').onclick = async () => {
-      const prompt = document.getElementById('prompt').value.trim();
-      const status = document.getElementById('status');
-      const preview = document.getElementById('preview');
-      preview.innerHTML = '';
-      if (!prompt) { status.textContent = 'Please enter a prompt'; return; }
+        const images = [https://drive.google.com/drive/folders/1dHw7v1M8X-j9svsU3xRmeNnvruPqbYNC]; // Fetch from server or Google Drive.
 
-      status.textContent = 'Generating… this can take 10–30 s.';
-      try {
-        // Send a synchronous generation request to Stable Horde
-        const res = await fetch('https://stablehorde.net/api/latest/generate/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            // your user prompt
-            prompt: prompt,
-            // generation parameters
-            params: { n: 1, width: 512, height: 512, steps: 30, scale: 7 },
-            // anonymous mode → free, no registration required
-            api_key: '0000000000'
-          })
+        images.forEach(url => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.onclick = () => {
+                modalImg.src = url;
+                modal.classList.add('active');
+            };
+            gallery.appendChild(img);
         });
-        const json = await res.json();
 
-        if (json.error) {
-          status.textContent = 'Error: ' + json.error;
-        } else if (json.images && json.images.length) {
-          // display the first image returned (base64-encoded PNG)
-          const img = document.createElement('img');
-          img.src = 'data:image/png;base64,' + json.images[0];
-          preview.appendChild(img);
-          status.textContent = '';
-        } else {
-          status.textContent = 'No image returned.';
-        }
-      } catch (e) {
-        status.textContent = 'Network error: ' + e.message;
-      }
-    };
-  </script>
+        modal.onclick = () => modal.classList.remove('active');
+    </script>
 </body>
 </html>
